@@ -2,6 +2,7 @@
 ### Author: Drew Woodhouse and Matt Burke
 ### Last edited: 06/12/2021
 ### Description: Basic statistical analysis 
+### Version 2
 
 ### Load libraries
 library(tseries)

@@ -100,8 +100,7 @@ Last_Week_Index_Ret = lag(rollapply(Index, width=7, RetList, fill=NA, align='rig
 # Forward looking weekly return, above variable reordered in time
 Next_Week_Eth_Ret = lead(Last_Week_Eth_Ret, 8),
 Next_Week_Btc_Ret = lead(Last_Week_Btc_Ret, 8),
-Next_Week_Index_Ret = lead(Last_Week_Index_Ret, 8),	
-
+Next_Week_Index_Ret = lead(Last_Week_Index_Ret, 8)
 ))
 
 
@@ -116,6 +115,9 @@ df2 <- as.data.frame(df2 %>% mutate(
 	ret_nextweek_eth = Next_Week_Eth_Ret*100,
 	ret_nextweek_btc = Next_Week_Btc_Ret*100,
 	ret_nextweek_index = Next_Week_Index_Ret*100,
+	ret_nexttwoweek_eth = Next_2Week_Eth_Ret*100,
+	ret_nexttwoweek_btc = Next_2Week_Btc_Ret*100,
+	ret_nexttwoweek_index = Next_2Week_Index_Ret*100,
 	))
 	
 df2 <- df2[complete.cases(df2),]
@@ -431,6 +433,36 @@ g <- ggarrange(Plot.fit1 , Plot.fit2, ncol = 2)
 ggsave("index.png", g, width = 8, height = 4,dpi = 320)
 
 
+# Summary statistics
+
+table_1 <- rbind( c( mean(Baseline$ln_GDP_PERCAPITA) , sd(Baseline$ln_GDP_PERCAPITA), min(Baseline$ln_GDP_PERCAPITA), max(Baseline$ln_GDP_PERCAPITA)), 
+				c( mean(Baseline$S_RealGDPgrowth) , sd(Baseline$S_RealGDPgrowth), min(Baseline$S_RealGDPgrowth), max(Baseline$S_RealGDPgrowth) ),
+				c( mean(Baseline$S_NetGGdebtGDP) , sd(Baseline$S_NetGGdebtGDP), min(Baseline$S_NetGGdebtGDP), max(Baseline$S_NetGGdebtGDP) ),
+				c( mean(Baseline$S_NarrownetextdebtCARs) , sd(Baseline$S_NarrownetextdebtCARs), min(Baseline$S_NarrownetextdebtCARs), max(Baseline$S_NarrownetextdebtCARs) ),
+				c( mean(Baseline$S_CurrentaccountbalanceGDP) , sd(Baseline$S_CurrentaccountbalanceGDP), min(Baseline$S_CurrentaccountbalanceGDP), max(Baseline$S_CurrentaccountbalanceGDP) ),
+				c( mean(Baseline$S_GGbalanceGDP) , sd(Baseline$S_GGbalanceGDP), min(Baseline$S_GGbalanceGDP), max(Baseline$S_GGbalanceGDP) ))
+table_1 <- as.data.frame( table_1 )
+colnames(table_1) <- c("mean", "stdev", "min", "max")
+rownames(table_1) <- c("ln GDP per capita", "S_RealGDPgrowth", "S_NetGGdebtGDP", "S_NarrownetextdebtCARs", "S_CurrentaccountbalanceGDP", "S_GGbalanceGDP")
+
+
+
+
+
+
+options(scipen = 999)
+table_1 <- rbind( c( mean(dfxx$ret_nextweek_eth) , sd(dfxx$ret_nextweek_eth), min(dfxx$ret_nextweek_eth), max(dfxx$ret_nextweek_eth)), 
+				c( mean(dfxx$ret_nextweek_btc) , sd(dfxx$ret_nextweek_btc), min(dfxx$ret_nextweek_btc), max(dfxx$ret_nextweek_btc) ),
+				c( mean(dfxx$ret_nextweek_index) , sd(dfxx$ret_nextweek_index), min(dfxx$ret_nextweek_index), max(dfxx$ret_nextweek_index) ),
+				c( mean(dfxx$Z_AbPolicy) , sd(dfxx$Z_AbPolicy), min(dfxx$Z_AbPolicy), max(dfxx$Z_AbPolicy) ),
+				c( mean(dfxx$AbSearch_Z) , sd(dfxx$AbSearch_Z), min(dfxx$AbSearch_Z), max(dfxx$AbSearch_Z) ),
+				c( mean(dfxx$Prior_7_cases) , sd(dfxx$Prior_7_cases), min(dfxx$Prior_7_cases), max(dfxx$Prior_7_cases) ),
+				c( mean(dfxx$Prior_7_deaths) , sd(dfxx$Prior_7_deaths), min(dfxx$Prior_7_deaths), max(dfxx$Prior_7_deaths) ))
+table_1 <- as.data.frame( table_1 )
+colnames(table_1) <- c("mean", "stdev", "min", "max")
+rownames(table_1) <- c("ret_nextweek_eth", "ret_nextweek_btc", "ret_nextweek_index", "AbPolicy", "AbSearch", "Prior_7_cases", "Prior_7_deaths")
+
+
 
 # BENCHMARK REPEATED
 
@@ -453,73 +485,14 @@ coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
 
 fit <- lm(ret_nextweek_eth ~ Z_Prior_7_cases*Z_AbPolicy + Z_Prior_7_cases + Z_AbPolicy + Z_ret_eth + AbSearch_Z, data=dfxx)
 coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-fit <- lm(ret_nextweek_eth ~ Z_Prior_7_deaths*Z_AbPolicy + Z_Prior_7_deaths + Z_AbPolicy + Z_ret_eth + AbSearch_Z, data=dfxx)
-coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
 fit <- lm(ret_nextweek_btc ~ Z_Prior_7_cases*Z_AbPolicy + Z_Prior_7_cases + Z_AbPolicy + Z_ret_btc + AbSearch_Z, data=dfxx)
 coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-fit <- lm(ret_nextweek_btc ~ Z_Prior_7_deaths*Z_AbPolicy + Z_Prior_7_deaths + Z_AbPolicy + Z_ret_btc + AbSearch_Z, data=dfxx)
-coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
 fit <- lm(ret_nextweek_index ~ Z_Prior_7_cases*Z_AbPolicy + Z_Prior_7_cases + Z_AbPolicy + Z_ret_index + AbSearch_Z, data=dfxx)
+coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
+fit <- lm(ret_nextweek_eth ~ Z_Prior_7_deaths*Z_AbPolicy + Z_Prior_7_deaths + Z_AbPolicy + Z_ret_eth + AbSearch_Z, data=dfxx)
+coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
+fit <- lm(ret_nextweek_btc ~ Z_Prior_7_deaths*Z_AbPolicy + Z_Prior_7_deaths + Z_AbPolicy + Z_ret_btc + AbSearch_Z, data=dfxx)
 coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
 fit <- lm(ret_nextweek_index ~ Z_Prior_7_deaths*Z_AbPolicy + Z_Prior_7_deaths + Z_AbPolicy + Z_ret_index + AbSearch_Z, data=dfxx)
 coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
 
-# # Different covid/death periods
-
-# fit <- lm(ret_nextweek_eth ~  Z_ret_eth_minus_week+Z_Prior_7_cases*Z_AbPolicy , data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextweek_btc ~  Z_ret_btc_minus_week+Z_Prior_7_cases*Z_AbPolicy , data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextweek_index ~  Z_ret_index_minus_week+Z_Prior_7_cases*Z_AbPolicy , data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-
-
-# fit <- lm(ret_nextweek_eth ~  Z_ret_eth_minus_week+Z_Prior_14_cases*Z_AbPolicy , data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextweek_btc ~  Z_ret_btc_minus_week+Z_Prior_14_cases*Z_AbPolicy , data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextweek_index ~  Z_ret_index_minus_week+Z_Prior_14_cases*Z_AbPolicy , data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-
-
-# # Different forward looking periods
-
-# fit <- lm(ret_nexttwoweek_eth ~  Z_ret_eth_minus_week+Z_Prior_10_cases*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nexttwoweek_btc ~  Z_ret_btc_minus_week+Z_Prior_10_cases*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nexttwoweek_index ~  Z_ret_index_minus_week+Z_Prior_10_cases*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-
-
-# fit <- lm(ret_nextthreeweek_eth ~  Z_ret_eth_minus_week+Z_Prior_10_cases*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextthreeweek_btc ~  Z_ret_btc_minus_week+Z_Prior_10_cases*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextthreeweek_index ~  Z_ret_index_minus_week+Z_Prior_10_cases*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-
-
-
-# fit <- lm(ret_nextweek_eth ~  Z_ret_eth_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextweek_btc ~  Z_ret_btc_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextweek_index ~  Z_ret_index_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-
-
-# fit <- lm(ret_nexttwoweek_eth ~  Z_ret_eth_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nexttwoweek_btc ~  Z_ret_btc_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nexttwoweek_index ~  Z_ret_index_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-
-
-# fit <- lm(ret_nextthreeweek_eth ~  Z_ret_eth_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextthreeweek_btc ~  Z_ret_btc_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
-# fit <- lm(ret_nextthreeweek_index ~  Z_ret_index_minus_week+Z_Prior_10_deaths*Z_AbPolicy +AbSearch_Z, data=dfxx)
-# coeftest(fit, vcov = NeweyWest(fit, lag = 7, prewhite = FALSE))
